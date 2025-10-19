@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 dark:bg-fintech-darker text-gray-900 dark:text-gray-100 font-sans;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white dark:bg-fintech-card border border-gray-200 dark:border-fintech-border rounded-xl p-6 shadow-sm;
+  }
+  
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 dark:bg-fintech-card hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 font-medium px-6 py-3 rounded-lg transition-all duration-200;
+  }
+  
+  .input {
+    @apply w-full px-4 py-3 bg-white dark:bg-fintech-dark border border-gray-300 dark:border-fintech-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200;
+  }
+  
+  .stat-card {
+    @apply card hover:shadow-glow-sm transition-shadow duration-300;
+  }
+}
