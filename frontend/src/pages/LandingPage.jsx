@@ -149,7 +149,7 @@ function LandingPage({ darkMode, setDarkMode }) {
 
         <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-8">
           {[
-            { step: '01', title: 'Upload Transactions', desc: 'Import your bank statements or use sample data' },
+            { step: '01', title: 'Upload Transactions', desc: 'Import your bank statements in CSV format' },
             { step: '02', title: 'AI Analysis', desc: 'Our models predict income, expenses, and cash flow' },
             { step: '03', title: 'Take Action', desc: 'Follow personalized recommendations to save more' },
           ].map((item, index) => (

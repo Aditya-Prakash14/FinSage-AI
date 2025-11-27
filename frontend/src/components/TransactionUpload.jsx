@@ -1,20 +1,9 @@
 import { useState } from 'react';
-import { Upload, FileText, Sparkles, Check } from 'lucide-react';
-import { generateSampleTransactions } from '../utils/helpers';
+import { Upload, FileText, Check } from 'lucide-react';
 
 function TransactionUpload({ onTransactionsUploaded }) {
   const [uploading, setUploading] = useState(false);
   const [uploadMethod, setUploadMethod] = useState(null);
-
-  const handleUseSampleData = () => {
-    setUploading(true);
-    setTimeout(() => {
-      const sampleData = generateSampleTransactions(60);
-      onTransactionsUploaded(sampleData);
-      setUploading(false);
-      setUploadMethod('sample');
-    }, 800);
-  };
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -79,7 +68,7 @@ function TransactionUpload({ onTransactionsUploaded }) {
         <div>
           <h2 className="text-xl font-bold">Transaction Data</h2>
           <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-            Upload your bank statements or use sample data
+            Upload your bank statements
           </p>
         </div>
         
@@ -87,34 +76,15 @@ function TransactionUpload({ onTransactionsUploaded }) {
           <div className="flex items-center space-x-2 text-green-600 dark:text-green-400">
             <Check className="w-5 h-5" />
             <span className="text-sm font-medium">
-              {uploadMethod === 'sample' ? 'Using sample data' : 'File uploaded'}
+              File uploaded
             </span>
           </div>
         )}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
-        {/* Sample Data Button */}
-        <button
-          onClick={handleUseSampleData}
-          disabled={uploading}
-          className="group p-6 border-2 border-dashed border-gray-300 dark:border-fintech-border rounded-xl hover:border-primary-500 dark:hover:border-primary-500 transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <div className="flex flex-col items-center text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Sparkles className="w-6 h-6 text-primary-600 dark:text-primary-400" />
-            </div>
-            <div>
-              <h3 className="font-semibold mb-1">Use Sample Data</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                60 days of simulated transactions
-              </p>
-            </div>
-          </div>
-        </button>
-
+      <div>
         {/* File Upload Button */}
-        <label className="group p-6 border-2 border-dashed border-gray-300 dark:border-fintech-border rounded-xl hover:border-primary-500 dark:hover:border-primary-500 transition-all hover:shadow-md cursor-pointer">
+        <label className="group p-6 border-2 border-dashed border-gray-300 dark:border-fintech-border rounded-xl hover:border-primary-500 dark:hover:border-primary-500 transition-all hover:shadow-md cursor-pointer block">
           <input
             type="file"
             accept=".csv"
