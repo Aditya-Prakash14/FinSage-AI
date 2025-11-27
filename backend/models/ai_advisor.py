@@ -26,6 +26,12 @@ try:
 except ImportError:
     OPENAI_AVAILABLE = False
 
+try:
+    import google.generativeai as genai
+    GOOGLE_AI_AVAILABLE = True
+except ImportError:
+    GOOGLE_AI_AVAILABLE = False
+
 
 class FinSageAdvisor:
     """
@@ -41,21 +47,34 @@ class FinSageAdvisor:
     def __init__(self, model_name: str = "gpt-4o-mini", temperature: float = 0.3):
         self.model_name = model_name
         self.temperature = temperature
-        self.api_key = os.getenv("OPENAI_API_KEY")
+        self.openai_key = os.getenv("OPENAI_API_KEY")
+        self.google_key = os.getenv("GOOGLE_API_KEY")
         
-        if LANGCHAIN_AVAILABLE and self.api_key:
+        # Try OpenAI first
+        if LANGCHAIN_AVAILABLE and self.openai_key:
             self.llm = ChatOpenAI(
                 model=model_name,
                 temperature=temperature,
-                api_key=self.api_key
+                api_key=self.openai_key
             )
             self.use_langchain = True
-        elif OPENAI_AVAILABLE and self.api_key:
-            self.client = OpenAIClient(api_key=self.api_key)
+            self.ai_provider = "openai"
+        elif OPENAI_AVAILABLE and self.openai_key:
+            self.client = OpenAIClient(api_key=self.openai_key)
             self.use_langchain = False
+            self.ai_provider = "openai"
+        # Fallback to Google AI
+        elif GOOGLE_AI_AVAILABLE and self.google_key:
+            genai.configure(api_key=self.google_key)
+            self.gemini_model = genai.GenerativeModel('gemini-pro')
+            self.use_langchain = False
+            self.ai_provider = "google"
+            self.client = None
         else:
             self.use_langchain = False
             self.client = None
+            self.ai_provider = "fallback"
+            print("⚠️ No AI API keys found - using fallback mode")
     
     def generate_forecast_insights(
         self,
@@ -101,10 +120,12 @@ Provide:
 
 Format as JSON with keys: summary, insights (array), action_items (array), warnings (array)"""
 
-        if self.use_langchain and self.api_key:
+        if self.use_langchain and self.openai_key:
             response = self._generate_with_langchain(system_prompt, user_prompt)
         elif self.client:
             response = self._generate_with_openai(system_prompt, user_prompt)
+        elif self.ai_provider == "google":
+            response = self._generate_with_google(system_prompt, user_prompt)
         else:
             response = self._generate_fallback(income_forecast, expense_forecast)
         
@@ -151,10 +172,12 @@ Provide:
 
 Format as JSON with keys: assessment, observations (array), adjustments (array), encouragement"""
 
-        if self.use_langchain and self.api_key:
+        if self.use_langchain and self.openai_key:
             response = self._generate_with_langchain(system_prompt, user_prompt)
         elif self.client:
             response = self._generate_with_openai(system_prompt, user_prompt)
+        elif self.ai_provider == "google":
+            response = self._generate_with_google(system_prompt, user_prompt)
         else:
             response = self._generate_budget_fallback(budget_allocation, historical_spending)
         
@@ -201,10 +224,12 @@ Provide a brief, supportive response:
 
 Format as JSON with keys: explanation, impact, recommended_action"""
 
-        if self.use_langchain and self.api_key:
+        if self.use_langchain and self.openai_key:
             response = self._generate_with_langchain(system_prompt, user_prompt)
         elif self.client:
             response = self._generate_with_openai(system_prompt, user_prompt)
+        elif self.ai_provider == "google":
+            response = self._generate_with_google(system_prompt, user_prompt)
         else:
             response = {
                 "explanation": "Spending exceeded expected amount for this category",
@@ -313,6 +338,25 @@ Allocations:"""
             )
             
             content = completion.choices[0].message.content
+            
+            # Try to parse as JSON
+            import json
+            try:
+                return json.loads(content)
+            except:
+                return {"summary": content, "insights": [], "action_items": [], "warnings": []}
+        
+        except Exception as e:
+            return self._error_response(str(e))
+    
+    def _generate_with_google(self, system_prompt: str, user_prompt: str) -> Dict:
+        """Generate response using Google Gemini AI"""
+        try:
+            # Combine system and user prompts for Gemini
+            full_prompt = f"{system_prompt}\n\n{user_prompt}"
+            
+            response = self.gemini_model.generate_content(full_prompt)
+            content = response.text
             
             # Try to parse as JSON
             import json

@@ -93,9 +93,8 @@ def sanitize_amount(amount: Any) -> float:
     """Sanitize and validate monetary amount"""
     try:
         value = float(amount)
-        if value < 0:
-            raise ValueError("Amount cannot be negative")
-        if value > 10_000_000:  # 1 crore limit
+        # Allow negative amounts for debit transactions
+        if abs(value) > 10_000_000:  # 1 crore limit
             raise ValueError("Amount exceeds maximum allowed")
         return round(value, 2)
     except (ValueError, TypeError) as e:

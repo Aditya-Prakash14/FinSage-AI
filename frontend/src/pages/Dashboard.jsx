@@ -49,21 +49,37 @@ function Dashboard({ darkMode, setDarkMode }) {
     try {
       // Upload to backend
       await financeAPI.uploadTransactions(userId, uploadedTransactions);
+      console.log('✅ Transactions uploaded successfully');
       
-      // Generate forecast
-      const forecastData = await financeAPI.generateForecast(userId, 7, true);
-      setForecast(forecastData);
+      // Try to generate forecast
+      try {
+        const forecastData = await financeAPI.generateForecast(userId, 7, true);
+        setForecast(forecastData);
+        console.log('✅ Forecast generated successfully');
+      } catch (forecastErr) {
+        console.warn('⚠️ Forecast generation failed:', forecastErr.message);
+        setError('AI forecasting unavailable. Showing transaction summary only.');
+      }
       
-      // Get AI insights
-      const insightsData = await financeAPI.getInsights(userId, 'New user seeking financial guidance');
-      setInsights(insightsData);
+      // Try to get AI insights
+      try {
+        const insightsData = await financeAPI.getInsights(userId, 'New user seeking financial guidance');
+        setInsights(insightsData);
+        console.log('✅ Insights generated successfully');
+      } catch (insightErr) {
+        console.warn('⚠️ Insights generation failed:', insightErr.message);
+      }
       
-      setActiveTab('forecast');
+      // Calculate local stats regardless of API success
+      const calculatedStats = calculateStats(uploadedTransactions);
+      setStats(calculatedStats);
+      
+      setActiveTab('overview');
     } catch (err) {
-      console.error('Error processing transactions:', err);
-      setError(err.response?.data?.detail || 'Failed to process transactions. Using demo data.');
+      console.error('❌ Error uploading transactions:', err);
+      setError(err.response?.data?.detail || 'Failed to upload transactions. Please check your data format.');
       
-      // Fallback to demo mode
+      // Still calculate local stats for display
       const calculatedStats = calculateStats(uploadedTransactions);
       setStats(calculatedStats);
     } finally {

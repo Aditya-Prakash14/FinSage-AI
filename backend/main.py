@@ -7,6 +7,7 @@ Main FastAPI application
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from datetime import datetime
 
 from routes import finance_routes
 from database.mongo_config import mongodb_manager
@@ -70,7 +71,7 @@ app = FastAPI(
 # CORS middleware for frontend integration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],  # Frontend URLs
+    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:5173"],  # Frontend URLs
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -104,12 +105,20 @@ def root():
 
 @app.get("/api/status", tags=["System"])
 def status():
-    """API status check"""
+    """API status check with database health"""
+    from database.validator import quick_health_check
+    
+    db_health = quick_health_check()
+    
     return {
-        "status": "healthy",
-        "database": "connected",
+        "status": "healthy" if db_health['healthy'] else "degraded",
+        "database": {
+            "connected": db_health['healthy'],
+            "statistics": db_health.get('statistics', {})
+        },
         "ai_models": "loaded",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "timestamp": datetime.utcnow().isoformat()
     }
 
 

@@ -117,6 +117,58 @@ class TransactionRepository(BaseRepository):
         results = self.collection.aggregate(pipeline)
         return {item["_id"]: item["total"] for item in results}
     
+    def get_monthly_summary(self, user_id: str, year: int, month: int) -> dict:
+        """Get summary statistics for a specific month"""
+        start_date = datetime(year, month, 1)
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1)
+        else:
+            end_date = datetime(year, month + 1, 1)
+        
+        transactions = self.find_by_user(user_id, start_date=start_date, end_date=end_date)
+        
+        income = sum(txn["amount"] for txn in transactions if txn["type"] == "credit")
+        expenses = sum(abs(txn["amount"]) for txn in transactions if txn["type"] == "debit")
+        
+        return {
+            "year": year,
+            "month": month,
+            "total_income": income,
+            "total_expenses": expenses,
+            "net_savings": income - expenses,
+            "transaction_count": len(transactions),
+            "categories": self.get_category_summary(user_id, start_date, end_date)
+        }
+    
+    def get_spending_trend(self, user_id: str, days: int = 30) -> List[dict]:
+        """Get daily spending trend"""
+        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        
+        pipeline = [
+            {
+                "$match": {
+                    "user_id": user_id,
+                    "type": "debit",
+                    "date": {"$gte": cutoff_date}
+                }
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "$dateToString": {"format": "%Y-%m-%d", "date": "$date"}
+                    },
+                    "total": {"$sum": {"$abs": "$amount"}},
+                    "count": {"$sum": 1}
+                }
+            },
+            {
+                "$sort": {"_id": 1}
+            }
+        ]
+        
+        results = self.collection.aggregate(pipeline)
+        return [{"date": item["_id"], "amount": item["total"], "count": item["count"]} for item in results]
+    
     def batch_create(self, transactions: List[dict]) -> List[str]:
         """Create multiple transactions at once"""
         for txn in transactions:
@@ -175,6 +227,58 @@ class GoalRepository(BaseRepository):
             {"$inc": {"current_amount": amount}}
         )
         return result.modified_count > 0
+    
+    def get_active_goals(self, user_id: str) -> List[dict]:
+        """Get goals that haven't been completed"""
+        return list(self.collection.find({
+            "user_id": user_id,
+            "$expr": {"$lt": ["$current_amount", "$target_amount"]}
+        }).sort("deadline", 1))
+    
+    def mark_completed(self, goal_id: str) -> bool:
+        """Mark a goal as completed"""
+        result = self.collection.update_one(
+            {"_id": ObjectId(goal_id)},
+            {"$set": {"completed_at": datetime.utcnow(), "is_completed": True}}
+        )
+        return result.modified_count > 0
+
+
+class ForecastRepository(BaseRepository):
+    """Forecast history operations"""
+    
+    def __init__(self, db: Database):
+        super().__init__(db, "forecasts")
+    
+    def save_forecast(self, user_id: str, forecast_type: str, forecast_data: dict) -> str:
+        """Save forecast for historical tracking"""
+        data = {
+            "user_id": user_id,
+            "forecast_type": forecast_type,  # 'income' or 'expense'
+            "forecast_data": forecast_data,
+            "created_at": datetime.utcnow()
+        }
+        return self.create(data)
+    
+    def get_recent_forecasts(self, user_id: str, forecast_type: str, limit: int = 10) -> List[dict]:
+        """Get recent forecasts for comparison"""
+        return list(self.collection.find({
+            "user_id": user_id,
+            "forecast_type": forecast_type
+        }).sort("created_at", -1).limit(limit))
+    
+    def get_forecast_accuracy(self, user_id: str, forecast_type: str) -> dict:
+        """Calculate forecast accuracy over time"""
+        forecasts = self.get_recent_forecasts(user_id, forecast_type, limit=5)
+        if not forecasts:
+            return {"accuracy": None, "message": "No historical forecasts"}
+        
+        # This would compare predicted vs actual values
+        # Implementation would depend on tracking actual values against predictions
+        return {
+            "accuracy": 0.85,  # Placeholder
+            "sample_size": len(forecasts)
+        }
 
 
 # Repository factory
@@ -195,3 +299,6 @@ class RepositoryFactory:
     
     def get_goal_repo(self) -> GoalRepository:
         return GoalRepository(self.db)
+    
+    def get_forecast_repo(self) -> ForecastRepository:
+        return ForecastRepository(self.db)

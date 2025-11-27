@@ -50,12 +50,24 @@ function TransactionUpload({ onTransactionsUploaded }) {
           transaction.category = value;
         } else if (header.includes('description')) {
           transaction.description = value;
+        } else if (header.includes('source')) {
+          transaction.source = value;
         }
       });
       
       // Ensure required fields
       if (!transaction.type) {
         transaction.type = transaction.amount > 0 ? 'credit' : 'debit';
+      }
+      
+      // Add default source if not provided
+      if (!transaction.source) {
+        transaction.source = transaction.type === 'credit' ? 'Payment App' : 'Card Payment';
+      }
+      
+      // Add default category if not provided
+      if (!transaction.category) {
+        transaction.category = transaction.type === 'credit' ? 'Income' : 'Expense';
       }
       
       return transaction;
