@@ -1,0 +1,8 @@
+date,amount,type,category,description
+2023-11-01,5000,income,Salary,Monthly Salary
+2023-11-02,150,expense,Food,Lunch at Cafe
+2023-11-03,50,expense,Transport,Bus Fare
+2023-11-05,2000,expense,Rent,Monthly Rent
+2023-11-10,300,expense,Utilities,Electricity Bill
+2023-11-15,1000,income,Freelance,Project Payment
+2023-11-20,500,expense,Entertainment,Movie Night

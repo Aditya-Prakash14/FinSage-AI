@@ -110,7 +110,7 @@ lerna-debug.log*
 
 # Data files (if storing large datasets)
 data/
-*.csv
+
 *.xlsx
 *.json
 

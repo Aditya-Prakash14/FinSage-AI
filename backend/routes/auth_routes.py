@@ -29,7 +29,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
 # Dependency to get DB session
 def get_db():
-    return mysql_manager.get_db()
+    yield from mysql_manager.get_db()
 
 # Pydantic Models
 class UserRegister(BaseModel):

@@ -1,0 +1,14 @@
+date,amount,type,category,description,source
+2025-11-01,-500,debit,Groceries,Weekly groceries,Card Payment
+2025-11-02,5000,credit,Freelance Payment,Client project payment,Payment App
+2025-11-03,-200,debit,Transport,Uber rides,Card Payment
+2025-11-05,-1500,debit,Rent,Monthly rent,Bank Transfer
+2025-11-07,-300,debit,Food,Restaurant dinner,Card Payment
+2025-11-10,3000,credit,Food Delivery,Delivery earnings,Payment App
+2025-11-12,-150,debit,Entertainment,Movie tickets,Card Payment
+2025-11-15,-800,debit,Utilities,Electricity and water,Bank Transfer
+2025-11-18,4500,credit,Consulting Fee,Advisory work,Payment App
+2025-11-20,-600,debit,Groceries,Monthly groceries,Card Payment
+2025-11-22,-100,debit,Healthcare,Pharmacy,Card Payment
+2025-11-25,2500,credit,Uber Earnings,Weekly earnings,Payment App
+2025-11-27,-250,debit,Food,Groceries and snacks,Card Payment

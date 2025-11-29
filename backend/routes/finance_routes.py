@@ -17,7 +17,7 @@ router = APIRouter()
 
 def get_db():
     """Database session dependency"""
-    return mysql_manager.get_db()
+    yield from mysql_manager.get_db()
 
 # ==================== Health Check ====================
 
@@ -34,23 +34,18 @@ async def health_check():
 
 @router.post("/transactions", tags=["Transactions"])
 async def create_transaction(
-    user_id: str = Query(...),
-    amount: float = Body(...),
-    type: str = Body(...),
-    category: str = Body(...),
-    description: str = Body(None),
-    date: str = Body(None),
+    payload: Dict = Body(...),
     db: Session = Depends(get_db)
 ):
     """Create a single transaction"""
     try:
         transaction = models.Transaction(
-            user_id=user_id,
-            amount=amount,
-            type=type,
-            category=category,
-            description=description,
-            date=datetime.fromisoformat(date) if date else datetime.utcnow()
+            user_id=payload.get("user_id"),
+            amount=payload.get("amount"),
+            type=payload.get("type"),
+            category=payload.get("category"),
+            description=payload.get("description"),
+            date=datetime.fromisoformat(payload.get("date")) if payload.get("date") else datetime.utcnow()
         )
         db.add(transaction)
         db.commit()
@@ -68,7 +63,7 @@ async def create_transaction(
 @router.post("/transactions/batch", tags=["Transactions"])
 async def create_transactions_batch(
     user_id: str = Query(...),
-    transactions: List[Dict] = Body(...),
+    transactions: List[Dict] = Body(..., embed=True),
     db: Session = Depends(get_db)
 ):
     """Create multiple transactions at once"""
@@ -229,27 +224,31 @@ async def generate_forecast(
         avg_daily_income = sum(t.amount for t in income_txns) / 90 if income_txns else 0
         avg_daily_expense = sum(t.amount for t in expense_txns) / 90 if expense_txns else 0
         
-        # Generate forecast
-        forecast = []
+        # Generate separate income and expense forecasts
+        income_forecast = []
+        expense_forecast = []
+        
         for i in range(forecast_days):
             date = datetime.utcnow() + timedelta(days=i+1)
-            forecast.append({
+            
+            income_forecast.append({
                 "date": date.isoformat(),
-                "income": {
-                    "predicted": avg_daily_income,
-                    "lower": avg_daily_income * 0.8 if include_confidence else None,
-                    "upper": avg_daily_income * 1.2 if include_confidence else None
-                },
-                "expense": {
-                    "predicted": avg_daily_expense,
-                    "lower": avg_daily_expense * 0.8 if include_confidence else None,
-                    "upper": avg_daily_expense * 1.2 if include_confidence else None
-                }
+                "predicted": avg_daily_income,
+                "lower": avg_daily_income * 0.8 if include_confidence else None,
+                "upper": avg_daily_income * 1.2 if include_confidence else None
+            })
+            
+            expense_forecast.append({
+                "date": date.isoformat(),
+                "predicted": avg_daily_expense,
+                "lower": avg_daily_expense * 0.8 if include_confidence else None,
+                "upper": avg_daily_expense * 1.2 if include_confidence else None
             })
         
         return {
             "success": True,
-            "forecast": forecast,
+            "income_forecast": income_forecast,
+            "expense_forecast": expense_forecast,
             "forecast_days": forecast_days,
             "message": "Forecast generated successfully"
         }
@@ -366,7 +365,7 @@ async def run_agent_analysis(
     """Run comprehensive multi-agent financial analysis"""
     try:
         # Import agents
-        from agents.orchestrator import AgentOrchestrator
+        from agents.orchestrator import FinSageOrchestrator
         
         # Get transactions
         transactions = db.query(models.Transaction).filter(
@@ -399,11 +398,14 @@ async def run_agent_analysis(
         ]
         
         # Run agent analysis
-        orchestrator = AgentOrchestrator()
+        orchestrator = FinSageOrchestrator()
         result = orchestrator.analyze(
+            user_id=user_id,
             transactions=transaction_list,
-            target_savings_rate=target_savings_rate,
-            risk_tolerance=risk_tolerance
+            user_preferences={
+                "target_savings_rate": target_savings_rate,
+                "risk_tolerance": risk_tolerance
+            }
         )
         
         # Store analysis result

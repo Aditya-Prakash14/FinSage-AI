@@ -11,7 +11,7 @@ function TransactionUpload({ onTransactionsUploaded }) {
 
     setUploading(true);
     const reader = new FileReader();
-    
+
     reader.onload = (e) => {
       try {
         const csvData = e.target.result;
@@ -25,21 +25,21 @@ function TransactionUpload({ onTransactionsUploaded }) {
         setUploading(false);
       }
     };
-    
+
     reader.readAsText(file);
   };
 
   const parseCSV = (csvData) => {
     const lines = csvData.trim().split('\n');
     const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-    
+
     return lines.slice(1).map(line => {
       const values = line.split(',');
       const transaction = {};
-      
+
       headers.forEach((header, index) => {
         const value = values[index]?.trim();
-        
+
         if (header.includes('date')) {
           transaction.date = new Date(value).toISOString();
         } else if (header.includes('amount')) {
@@ -54,22 +54,27 @@ function TransactionUpload({ onTransactionsUploaded }) {
           transaction.source = value;
         }
       });
-      
+
       // Ensure required fields
       if (!transaction.type) {
-        transaction.type = transaction.amount > 0 ? 'credit' : 'debit';
+        transaction.type = transaction.amount > 0 ? 'income' : 'expense';
+      } else {
+        // Normalize type
+        const type = transaction.type.toLowerCase();
+        if (type === 'credit' || type === 'deposit') transaction.type = 'income';
+        else if (type === 'debit' || type === 'withdrawal') transaction.type = 'expense';
       }
-      
+
       // Add default source if not provided
       if (!transaction.source) {
         transaction.source = transaction.type === 'credit' ? 'Payment App' : 'Card Payment';
       }
-      
+
       // Add default category if not provided
       if (!transaction.category) {
-        transaction.category = transaction.type === 'credit' ? 'Income' : 'Expense';
+        transaction.category = transaction.type === 'income' ? 'Income' : 'Expense';
       }
-      
+
       return transaction;
     }).filter(t => t.date && t.amount);
   };
@@ -83,7 +88,7 @@ function TransactionUpload({ onTransactionsUploaded }) {
             Upload your bank statements
           </p>
         </div>
-        
+
         {uploadMethod && (
           <div className="flex items-center space-x-2 text-green-600 dark:text-green-400">
             <Check className="w-5 h-5" />

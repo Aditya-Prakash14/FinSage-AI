@@ -110,35 +110,43 @@ function Dashboard({ darkMode, setDarkMode }) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-fintech-darker">
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-white dark:bg-fintech-dark border-r border-gray-200 dark:border-fintech-border z-10">
+      <aside className="fixed left-0 top-0 h-full w-64 bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700 z-10 shadow-2xl">
         <div className="p-6">
-          <div className="flex items-center space-x-2 mb-8">
-            <Sparkles className="w-8 h-8 text-primary-500" />
-            <span className="text-xl font-bold">FinSage AI</span>
+          <div className="flex items-center space-x-3 mb-8 pb-6 border-b border-gray-700">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center shadow-lg">
+              <Sparkles className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <span className="text-xl font-bold text-white">FinSage AI</span>
+              <p className="text-xs text-gray-400">Your Personal CFO</p>
+            </div>
           </div>
 
-          <nav className="space-y-2">
+          <nav className="space-y-1.5">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${activeTab === tab.id
-                      ? 'bg-primary-600 text-white shadow-md'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-fintech-card'
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all group ${activeTab === tab.id
+                    ? 'bg-gradient-to-r from-primary-600 to-purple-600 text-white shadow-lg shadow-primary-500/50'
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                     }`}
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className={`w-5 h-5 ${activeTab === tab.id ? '' : 'group-hover:scale-110 transition-transform'}`} />
                   <span className="font-medium">{tab.label}</span>
+                  {activeTab === tab.id && (
+                    <div className="ml-auto w-2 h-2 rounded-full bg-white"></div>
+                  )}
                 </button>
               );
             })}
           </nav>
 
-          <div className="mt-auto pt-8">
-            <button className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-fintech-card transition-all">
-              <Settings className="w-5 h-5" />
+          <div className="mt-auto pt-8 border-t border-gray-700">
+            <button className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition-all group">
+              <Settings className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
               <span className="font-medium">Settings</span>
             </button>
           </div>
@@ -148,12 +156,13 @@ function Dashboard({ darkMode, setDarkMode }) {
       {/* Main Content */}
       <div className="ml-64">
         {/* Header */}
-        <header className="bg-white dark:bg-fintech-dark border-b border-gray-200 dark:border-fintech-border px-8 py-4 sticky top-0 z-10">
+        <header className="bg-white dark:bg-fintech-dark border-b border-gray-200 dark:border-fintech-border px-8 py-6 sticky top-0 z-10 backdrop-blur-sm bg-white/95 dark:bg-fintech-dark/95">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold">Financial Dashboard</h1>
-              <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-                Monitor your cash flow and get AI-powered recommendations
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">Financial Dashboard</h1>
+              <p className="text-gray-600 dark:text-gray-400 text-sm mt-2 flex items-center gap-2">
+                <Activity className="w-4 h-4" />
+                Real-time AI-powered financial intelligence
               </p>
             </div>
 
