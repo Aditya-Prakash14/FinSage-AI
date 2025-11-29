@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from routes import finance_routes
+from routes import finance_routes, auth_routes
 from database.mongo_config import mongodb_manager
 
 
@@ -78,6 +78,11 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(
+    auth_routes.router,
+    prefix="/api/auth",
+    tags=["Authentication"]
+)
 app.include_router(
     finance_routes.router, 
     prefix="/api/finance", 

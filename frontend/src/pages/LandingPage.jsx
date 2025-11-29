@@ -84,15 +84,18 @@ function LandingPage({ darkMode, setDarkMode }) {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/register')}
               className="btn-primary px-10 py-4 text-lg shadow-glow hover:shadow-glow group"
             >
-              Get Started
+              Get Started Free
               <Zap className="inline-block ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
             
-            <button className="btn-secondary px-10 py-4 text-lg">
-              Watch Demo
+            <button 
+              onClick={() => navigate('/login')}
+              className="btn-secondary px-10 py-4 text-lg"
+            >
+              Sign In
             </button>
           </div>
 
