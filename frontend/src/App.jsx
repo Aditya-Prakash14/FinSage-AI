@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import LandingPage from './pages/LandingPage'
@@ -22,11 +23,22 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Apply dark mode class to document root
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<LandingPage darkMode={darkMode} setDarkMode={setDarkMode} />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route 
@@ -41,7 +53,7 @@ function App() {
             path="/dashboard" 
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <Dashboard darkMode={darkMode} setDarkMode={setDarkMode} />
               </ProtectedRoute>
             } 
           />

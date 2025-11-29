@@ -11,7 +11,8 @@ import {
   Sparkles,
   AlertCircle,
   Loader2,
-  Bot
+  Bot,
+  Activity
 } from 'lucide-react';
 
 import TransactionUpload from '../components/TransactionUpload';

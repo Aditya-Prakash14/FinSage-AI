@@ -11,8 +11,7 @@ load_dotenv()
 
 try:
     from langchain_openai import ChatOpenAI
-    from langchain.prompts import ChatPromptTemplate
-    from langchain.schema import HumanMessage, SystemMessage
+    from langchain_core.messages import HumanMessage, SystemMessage
     LANGCHAIN_AVAILABLE = True
 except ImportError:
     LANGCHAIN_AVAILABLE = False

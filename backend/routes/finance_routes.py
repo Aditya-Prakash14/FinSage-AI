@@ -19,6 +19,23 @@ def get_db():
     """Database session dependency"""
     yield from mysql_manager.get_db()
 
+def ensure_user_exists(db: Session, user_id: str):
+    """Ensure user exists in database, create if not"""
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        # Create a demo user
+        user = models.User(
+            id=user_id,
+            email=f"{user_id}@demo.finsage.ai",
+            password_hash="demo_hash",  # Not used for demo users
+            name="Demo User",
+            is_demo=True
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    return user
+
 # ==================== Health Check ====================
 
 @router.get("/health", tags=["System"])
@@ -39,8 +56,13 @@ async def create_transaction(
 ):
     """Create a single transaction"""
     try:
+        user_id = payload.get("user_id")
+        
+        # Ensure user exists
+        ensure_user_exists(db, user_id)
+        
         transaction = models.Transaction(
-            user_id=payload.get("user_id"),
+            user_id=user_id,
             amount=payload.get("amount"),
             type=payload.get("type"),
             category=payload.get("category"),
@@ -63,11 +85,14 @@ async def create_transaction(
 @router.post("/transactions/batch", tags=["Transactions"])
 async def create_transactions_batch(
     user_id: str = Query(...),
-    transactions: List[Dict] = Body(..., embed=True),
+    transactions: List[Dict] = Body(...),
     db: Session = Depends(get_db)
 ):
     """Create multiple transactions at once"""
     try:
+        # Ensure user exists before creating transactions
+        ensure_user_exists(db, user_id)
+        
         transaction_ids = []
         for txn_data in transactions:
             transaction = models.Transaction(

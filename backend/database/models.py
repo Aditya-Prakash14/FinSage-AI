@@ -44,6 +44,9 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # Account type
+    is_demo = Column(Boolean, default=False)
+    
     # Onboarding status
     onboarding_completed = Column(Boolean, default=False)
     

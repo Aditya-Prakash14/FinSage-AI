@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinSage AI - Frontend Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .status {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+        .icon {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .test-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 FinSage AI - Frontend Test</h1>
+        <p class="subtitle">Testing frontend and backend connectivity</p>
+
+        <div class="test-section">
+            <h3>System Status</h3>
+            <div id="backend-status" class="status loading">
+                <span class="icon">⏳</span>
+                <span>Checking backend...</span>
+            </div>
+            <div id="frontend-status" class="status success">
+                <span class="icon">✅</span>
+                <span>Frontend is running on http://localhost:3000</span>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>API Tests</h3>
+            <button class="btn" onclick="testHealthCheck()">Test Health Check</button>
+            <button class="btn" onclick="testAuth()">Test Authentication</button>
+            <button class="btn" onclick="openDashboard()">Open Dashboard</button>
+            
+            <div id="test-results" style="margin-top: 20px;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Quick Access</h3>
+            <button class="btn" onclick="window.open('http://localhost:3000', '_blank')">Open Frontend</button>
+            <button class="btn" onclick="window.open('http://localhost:8000/docs', '_blank')">Open API Docs</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        const FRONTEND_URL = 'http://localhost:3000';
+
+        // Check backend on load
+        window.onload = async function() {
+            try {
+                const response = await fetch(`${API_URL}/api/finance/health`);
+                const data = await response.json();
+                
+                if (data.status === 'healthy') {
+                    document.getElementById('backend-status').className = 'status success';
+                    document.getElementById('backend-status').innerHTML = `
+                        <span class="icon">✅</span>
+                        <span>Backend is healthy (${API_URL})</span>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('backend-status').className = 'status error';
+                document.getElementById('backend-status').innerHTML = `
+                    <span class="icon">❌</span>
+                    <span>Backend is not responding. Please start the backend server.</span>
+                `;
+            }
+        };
+
+        async function testHealthCheck() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<div class="status loading"><span class="icon">⏳</span><span>Testing...</span></div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/finance/health`);
+                const data = await response.json();
+                
+                resultsDiv.innerHTML = `
+                    <div class="status success">
+                        <span class="icon">✅</span>
+                        <span>Health Check Passed!</span>
+                    </div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="status error">
+                        <span class="icon">❌</span>
+                        <span>Health Check Failed: ${error.message}</span>
+                    </div>
+                `;
+            }
+        }
+
+        async function testAuth() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<div class="status loading"><span class="icon">⏳</span><span>Testing authentication...</span></div>';
+            
+            try {
+                // Test registration
+                const testUser = {
+                    email: `test_${Date.now()}@example.com`,
+                    password: 'Test123!@#',
+                    name: 'Test User'
+                };
+                
+                const response = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testUser)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultsDiv.innerHTML = `
+                        <div class="status success">
+                            <span class="icon">✅</span>
+                            <span>Authentication Test Passed!</span>
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="status error">
+                            <span class="icon">❌</span>
+                            <span>Authentication Test Failed</span>
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="status error">
+                        <span class="icon">❌</span>
+                        <span>Authentication Test Error: ${error.message}</span>
+                    </div>
+                `;
+            }
+        }
+
+        function openDashboard() {
+            window.open(`${FRONTEND_URL}/dashboard`, '_blank');
+        }
+    </script>
+</body>
+</html>

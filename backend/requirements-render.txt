@@ -1,0 +1,32 @@
+# Lightweight requirements for Render deployment
+# Excludes heavy ML packages (Prophet, PyTorch) to avoid build timeouts
+
+# Core Framework
+fastapi==0.119.0
+uvicorn[standard]==0.38.0
+pydantic==2.12.3
+python-dotenv==1.1.1
+PyJWT==2.10.1
+
+# AI & LLM (essential only)
+openai>=1.0.0
+langchain>=0.1.0
+langchain-core>=0.1.0
+langchain-openai>=0.1.0
+langgraph>=0.2.0
+langchain-community>=0.1.0
+
+# Database
+SQLAlchemy==2.0.44
+mysql-connector-python==9.5.0
+PyMySQL==1.1.2
+
+# Utilities
+python-dateutil==2.9.0.post0
+pytz==2025.2
+requests==2.32.5
+httpx==0.28.1
+
+# Note: Prophet and PyTorch excluded for faster builds
+# Forecasting will use simple statistical methods instead
+# For full ML capabilities, upgrade to Render paid plan
