@@ -10,12 +10,14 @@ import {
   Sun,
   Sparkles,
   AlertCircle,
-  Loader2
+  Loader2,
+  Bot
 } from 'lucide-react';
 
 import TransactionUpload from '../components/TransactionUpload';
 import ForecastCharts from '../components/ForecastCharts';
 import AIRecommendations from '../components/AIRecommendations';
+import AgentAnalysis from '../components/AgentAnalysis';
 import FinancialSummary from '../components/FinancialSummary';
 import { financeAPI } from '../services/api';
 import { calculateStats } from '../utils/helpers';
@@ -25,13 +27,14 @@ function Dashboard({ darkMode, setDarkMode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
-  
+
   // Data state
   const [transactions, setTransactions] = useState([]);
   const [forecast, setForecast] = useState(null);
   const [insights, setInsights] = useState(null);
+  const [agentReport, setAgentReport] = useState(null);
   const [stats, setStats] = useState(null);
-  
+
   const userId = 'demo_user_001'; // In production, this would come from auth
 
   useEffect(() => {
@@ -50,7 +53,7 @@ function Dashboard({ darkMode, setDarkMode }) {
       // Upload to backend
       await financeAPI.uploadTransactions(userId, uploadedTransactions);
       console.log('✅ Transactions uploaded successfully');
-      
+
       // Try to generate forecast
       try {
         const forecastData = await financeAPI.generateForecast(userId, 7, true);
@@ -60,7 +63,7 @@ function Dashboard({ darkMode, setDarkMode }) {
         console.warn('⚠️ Forecast generation failed:', forecastErr.message);
         setError('AI forecasting unavailable. Showing transaction summary only.');
       }
-      
+
       // Try to get AI insights
       try {
         const insightsData = await financeAPI.getInsights(userId, 'New user seeking financial guidance');
@@ -69,16 +72,25 @@ function Dashboard({ darkMode, setDarkMode }) {
       } catch (insightErr) {
         console.warn('⚠️ Insights generation failed:', insightErr.message);
       }
-      
+
+      // Try to get Agent Analysis
+      try {
+        const report = await financeAPI.getAgentAnalysis(userId, 30);
+        setAgentReport(report);
+        console.log('✅ Agent analysis generated successfully');
+      } catch (agentErr) {
+        console.warn('⚠️ Agent analysis failed:', agentErr.message);
+      }
+
       // Calculate local stats regardless of API success
       const calculatedStats = calculateStats(uploadedTransactions);
       setStats(calculatedStats);
-      
+
       setActiveTab('overview');
     } catch (err) {
       console.error('❌ Error uploading transactions:', err);
       setError(err.response?.data?.detail || 'Failed to upload transactions. Please check your data format.');
-      
+
       // Still calculate local stats for display
       const calculatedStats = calculateStats(uploadedTransactions);
       setStats(calculatedStats);
@@ -89,8 +101,9 @@ function Dashboard({ darkMode, setDarkMode }) {
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Home },
+    { id: 'agent', label: 'Agent Analysis', icon: Bot },
     { id: 'forecast', label: 'Forecast', icon: TrendingUp },
-    { id: 'insights', label: 'AI Insights', icon: Sparkles },
+    { id: 'insights', label: 'Quick Insights', icon: Sparkles },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   ];
 
@@ -111,11 +124,10 @@ function Dashboard({ darkMode, setDarkMode }) {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
-                    activeTab === tab.id
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${activeTab === tab.id
                       ? 'bg-primary-600 text-white shadow-md'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-fintech-card'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="font-medium">{tab.label}</span>
@@ -200,6 +212,22 @@ function Dashboard({ darkMode, setDarkMode }) {
                   <FinancialSummary stats={stats} forecast={forecast} />
                   <TransactionUpload onTransactionsUploaded={handleTransactionsUploaded} />
                 </>
+              )}
+            </div>
+          )}
+
+          {/* Agent Analysis Tab */}
+          {activeTab === 'agent' && (
+            <div className="space-y-6">
+              {agentReport ? (
+                <AgentAnalysis report={agentReport} />
+              ) : (
+                <div className="card text-center py-20">
+                  <Bot className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Upload transactions to generate comprehensive multi-agent analysis
+                  </p>
+                </div>
               )}
             </div>
           )}

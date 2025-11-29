@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 
 from routes import finance_routes, auth_routes
-from database.mongo_config import mongodb_manager
+from database.mysql_config import mysql_manager
 
 
 @asynccontextmanager
@@ -19,17 +19,17 @@ async def lifespan(app: FastAPI):
     # Startup
     print("🚀 Starting FinSage AI...")
     try:
-        mongodb_manager.connect()
+        mysql_manager.connect()
         print("✅ Database ready")
     except Exception as e:
-        print(f"  Starting without database: {e}")
+        print(f"⚠️  Starting without database: {e}")
     
     yield
     
     # Shutdown
-    print(" Shutting down FinSage AI...")
+    print("🛑 Shutting down FinSage AI...")
     try:
-        mongodb_manager.close()
+        mysql_manager.close()
         print("✅ Database connection closed")
     except:
         pass
