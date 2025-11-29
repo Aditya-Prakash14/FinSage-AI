@@ -32,12 +32,27 @@ class MongoDBManager:
             database_name = db_name or os.getenv("MONGODB_DB_NAME", "finsage_db")
             
             try:
-                self._client = MongoClient(
-                    conn_str,
-                    maxPoolSize=50,
-                    minPoolSize=10,
-                    serverSelectionTimeoutMS=5000
-                )
+                # Try with SSL verification first, fall back if needed
+                try:
+                    import certifi
+                    self._client = MongoClient(
+                        conn_str,
+                        maxPoolSize=50,
+                        minPoolSize=10,
+                        serverSelectionTimeoutMS=10000,
+                        tlsCAFile=certifi.where()
+                    )
+                except Exception as ssl_error:
+                    # Fallback: Try without strict SSL verification (for OpenSSL 3.0 compatibility)
+                    print(f"   Retrying with relaxed SSL settings...")
+                    self._client = MongoClient(
+                        conn_str,
+                        maxPoolSize=50,
+                        minPoolSize=10,
+                        serverSelectionTimeoutMS=10000,
+                        tlsAllowInvalidCertificates=True
+                    )
+                
                 self._db = self._client[database_name]
                 
                 # Test connection

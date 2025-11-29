@@ -100,6 +100,19 @@ export const financeAPI = {
   },
 
   /**
+   * Get comprehensive AI agent analysis
+   */
+  async getAgentAnalysis(userId, days = 30, targetSavingsRate = 0.30, riskTolerance = 'moderate') {
+    const response = await apiClient.post('/api/finance/agent-analysis', {
+      user_id: userId,
+      days: days,
+      target_savings_rate: targetSavingsRate,
+      risk_tolerance: riskTolerance,
+    });
+    return response.data;
+  },
+
+  /**
    * Health check
    */
   async healthCheck() {

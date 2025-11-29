@@ -22,12 +22,12 @@ async def lifespan(app: FastAPI):
         mongodb_manager.connect()
         print("✅ Database ready")
     except Exception as e:
-        print(f"⚠️  Starting without database: {e}")
+        print(f"  Starting without database: {e}")
     
     yield
     
     # Shutdown
-    print("🛑 Shutting down FinSage AI...")
+    print(" Shutting down FinSage AI...")
     try:
         mongodb_manager.close()
         print("✅ Database connection closed")

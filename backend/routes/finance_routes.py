@@ -370,6 +370,85 @@ async def detect_anomalies(user_id: str, db=Depends(get_db)):
     return {"anomalies": anomalies, "count": len(anomalies)}
 
 
+# ==================== Multi-Agent Analysis ====================
+
+@router.post("/agent-analysis", tags=["AI Agents"])
+async def run_agent_analysis(
+    user_id: str = Body(..., embed=True),
+    days: int = Body(30, embed=True),
+    target_savings_rate: float = Body(0.2, embed=True),
+    risk_tolerance: str = Body("medium", embed=True),
+    db=Depends(get_db)
+):
+    """
+    Run comprehensive multi-agent financial analysis using LangGraph
+    
+    This endpoint coordinates 5 specialized AI agents:
+    1. **Financial Analyst** - Analyzes transaction patterns and metrics
+    2. **Budget Optimizer** - Creates optimal budget allocation using RL
+    3. **Risk Assessor** - Evaluates financial risks and vulnerabilities
+    4. **Savings Coach** - Provides personalized savings strategies
+    5. **Transaction Monitor** - Detects anomalies and alerts
+    
+    Returns a comprehensive report with insights from all agents.
+    """
+    repo_factory = RepositoryFactory(db)
+    txn_repo = repo_factory.get_transaction_repo()
+    
+    # Get transactions
+    transactions = txn_repo.get_recent_transactions(user_id, days=days)
+    
+    if not transactions:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"No transactions found for user {user_id}"
+        )
+    
+    # Convert to list of dicts
+    txn_list = []
+    for txn in transactions:
+        txn_dict = {
+            "date": txn["date"].isoformat() if isinstance(txn["date"], datetime) else txn["date"],
+            "amount": txn["amount"],
+            "type": txn["type"],
+            "category": txn.get("category", "miscellaneous"),
+            "description": txn.get("description", ""),
+            "source": txn.get("source", "")
+        }
+        txn_list.append(txn_dict)
+    
+    # User preferences
+    user_preferences = {
+        "target_savings_rate": target_savings_rate,
+        "risk_tolerance": risk_tolerance,
+    }
+    
+    # Run multi-agent analysis
+    try:
+        from agents.orchestrator import get_orchestrator
+        
+        orchestrator = get_orchestrator()
+        comprehensive_report = orchestrator.analyze(
+            user_id=user_id,
+            transactions=txn_list,
+            user_preferences=user_preferences
+        )
+        
+        # Log the analysis
+        create_audit_log("agent_analysis_complete", user_id, "agent_system", {
+            "transaction_count": len(txn_list),
+            "health_score": comprehensive_report.get("financial_overview", {}).get("health_score")
+        })
+        
+        return comprehensive_report
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Agent analysis failed: {str(e)}"
+        )
+
+
 # ==================== Health Check ====================
 
 @router.get("/health", tags=["System"])
